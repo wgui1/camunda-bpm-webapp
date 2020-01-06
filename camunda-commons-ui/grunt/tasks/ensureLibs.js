@@ -16,6 +16,7 @@
  */
 
 var fs = require('fs');
+var through = require('through2');
 
 var commonPackage = fs.readFileSync(__dirname + '/../../package.json', 'utf8');
 
@@ -49,7 +50,7 @@ var included = [
 ];
 
 
-module.exports = function(grunt, dirname) {
+module.exports = function(grunt, dirname, includedFiles) {
   'use strict';
   grunt.registerMultiTask('ensureLibs', function() {
 
@@ -103,10 +104,25 @@ module.exports = function(grunt, dirname) {
 
     var b = require(dirname + '/node_modules/persistify')( browserifyOptions, persistifyOptions );
 
+
+    if(includedFiles) {
+
+    }
+
+    b.pipeline.get("deps").push(through.obj(function(row, enc, next) {
+      // console.log(row.file);
+
+      includedFiles.add(row.file);
+      this.push(row);
+      next();
+    }));
+
     var cacheData = {};
 
     for(var key in packageJson.dependencies) {
       if(excluded.indexOf(key) === -1) {
+        console.log(key);
+        includedFiles.add(__dirname + '/../../node_modules/' + key + '/index.js')
         b.require(key);
         cacheData[key] = packageJson.dependencies[key];
       }
@@ -122,8 +138,8 @@ module.exports = function(grunt, dirname) {
     fs.readFile(cacheDest, 'utf8', function(err, previousCache) {
       if(!err && JSON.stringify(cacheData, null, '  ') === previousCache) {
         console.log('everything up to date');
-        done();
-        return;
+        // done();
+        // return;
       }
 
       b.on( 'bundle:done', function( time ) {
