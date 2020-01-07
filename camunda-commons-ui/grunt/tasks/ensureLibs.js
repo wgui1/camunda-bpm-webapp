@@ -105,12 +105,16 @@ module.exports = function(grunt, dirname, includedFiles) {
     var b = require(dirname + '/node_modules/persistify')( browserifyOptions, persistifyOptions );
 
 
-    if(includedFiles) {
-
-    }
-
     b.pipeline.get("deps").push(through.obj(function(row, enc, next) {
-      // console.log(row.file);
+
+    // Debug code to find which file requires a specific module
+
+      // if(Object.keys(row.deps).some(el => {
+    //   return (el.indexOf('ieee754') > -1 || row.file.indexOf('timers-browserify') > -1);
+    // })) {
+    //   console.log(JSON.stringify(row, null, 2));
+    //   fs.appendFileSync('deps.json', JSON.stringify(row, null, 2));
+    // }
 
       includedFiles.add(row.file);
       this.push(row);
