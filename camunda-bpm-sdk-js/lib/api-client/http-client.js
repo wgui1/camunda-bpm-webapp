@@ -120,22 +120,31 @@ HttpClient.prototype.post = function(path, options) {
 
   var isFieldOrAttach = false;
   // Buffer object is only available in node.js environement
-  if (typeof Buffer !== 'undefined') {
-    Object.keys(options.fields || {}).forEach(function(field) {
-      req.field(field, options.fields[field]);
-      isFieldOrAttach = true;
-    });
-    (options.attachments || []).forEach(function(file, idx) {
-      req.attach('data_' + idx, new Buffer(file.content), file.name);
-      isFieldOrAttach = true;
-    });
-  } else if (!!options.fields || !!options.attachments) {
-    var err = new Error(
-      'Multipart request is only supported in node.js environement.'
-    );
-    done(err);
-    return deferred.reject(err);
-  }
+  // if (typeof Buffer !== 'undefined') {
+  //   Object.keys(options.fields || {}).forEach(function(field) {
+  //     req.field(field, options.fields[field]);
+  //     isFieldOrAttach = true;
+  //   });
+  //   (options.attachments || []).forEach(function(file, idx) {
+  //     req.attach('data_' + idx, new Buffer(file.content), file.name);
+  //     isFieldOrAttach = true;
+  //   });
+  // } else if (!!options.fields || !!options.attachments) {
+  //   var err = new Error(
+  //     'Multipart request is only supported in node.js environement.'
+  //   );
+  //   done(err);
+  //   return deferred.reject(err);
+  // }
+
+  Object.keys(options.fields || {}).forEach(function(field) {
+    req.field(field, options.fields[field]);
+    isFieldOrAttach = true;
+  });
+  (options.attachments || []).forEach(function(file, idx) {
+    req.attach('data_' + idx, new Blob([file.content]), file.name);
+    isFieldOrAttach = true;
+  }); 
 
   if (!isFieldOrAttach) {
     req.send(options.data || {});
